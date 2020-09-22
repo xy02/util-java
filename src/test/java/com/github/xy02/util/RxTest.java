@@ -7,10 +7,10 @@ import java.util.concurrent.TimeUnit;
 
 public class RxTest {
     @Test
-    public void testGetSubValues() throws InterruptedException {
+    public void testGetSubValues() throws Throwable {
         var f = Rx.getSubValues(Observable.interval(1, TimeUnit.SECONDS), v -> v % 2 == 0);
-        f.apply(true).subscribe(x->System.out.println(x+":x:"+Thread.currentThread().getId()));
-        f.apply(false).subscribe(x->System.out.println(x+":y:"+Thread.currentThread().getId()));
+        f.apply(true).subscribe(x -> System.out.println(x + ":x:" + Thread.currentThread().getId()));
+        f.apply(false).subscribe(x -> System.out.println(x + ":y:" + Thread.currentThread().getId()));
         Thread.sleep(5000);
     }
 }
