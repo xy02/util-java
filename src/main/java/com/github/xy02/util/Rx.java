@@ -18,17 +18,24 @@ public class Rx {
                     K key = keySelector.apply(v);
                     Set<ObservableEmitter<V>> emitterSet = m.get(key);
                     if (emitterSet != null) {
-                        emitterSet.forEach(emitter -> emitter.onNext(v));
+                        for (ObservableEmitter<V> emitter :emitterSet) {
+                            emitter.onNext(v);
+                        }
                     }
                 })
                 .ignoreElements()
                 .cache();
         return key -> Observable.create(emitter -> {
-            Set<ObservableEmitter<V>> emitterSet = m.computeIfAbsent(key, k -> new HashSet<>());
+            Set<ObservableEmitter<V>> emitterSet = m.get(key);
+            if (emitterSet == null) {
+                emitterSet = new HashSet<>();
+                m.put(key, emitterSet);
+            }
             emitterSet.add(emitter);
             Disposable d = theEnd.subscribe(emitter::onComplete, emitter::onError);
+            Set<ObservableEmitter<V>> finalEmitterSet = emitterSet;
             emitter.setDisposable(Disposable.fromAction(() -> {
-                emitterSet.remove(emitter);
+                finalEmitterSet.remove(emitter);
                 d.dispose();
             }));
         });
