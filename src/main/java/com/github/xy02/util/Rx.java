@@ -6,7 +6,7 @@ import io.reactivex.rxjava3.core.ObservableEmitter;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.functions.Function;
 
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -28,7 +28,7 @@ public class Rx {
         return key -> Observable.create(emitter -> {
             Set<ObservableEmitter<V>> emitterSet = m.get(key);
             if (emitterSet == null) {
-                emitterSet = new HashSet<>();
+                emitterSet = Collections.newSetFromMap(new ConcurrentHashMap<>());;
                 m.put(key, emitterSet);
             }
             emitterSet.add(emitter);
@@ -36,6 +36,9 @@ public class Rx {
             Set<ObservableEmitter<V>> finalEmitterSet = emitterSet;
             emitter.setDisposable(Disposable.fromAction(() -> {
                 finalEmitterSet.remove(emitter);
+                if (finalEmitterSet.size() == 0){
+                    m.remove(key);
+                }
                 d.dispose();
             }));
         });
